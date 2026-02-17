@@ -6,25 +6,47 @@ An MCP (Model Context Protocol) server that exposes [Interzoid](https://interzoi
 
 This MCP server makes 29 Interzoid APIs discoverable and callable by any MCP-compatible client including Claude Desktop, Claude Code, Cursor, Windsurf, and other AI tools. AI agents can discover the available data quality tools and invoke them as needed during conversations and workflows.
 
-### Available API Categories (30 APIs)
+### Available APIs (29 Tools)
 
 | Category | Tools | Price (USDC) |
 |---|---|---|
 | **Data Matching** — Similarity key generation & scoring | Company match, org match score, name match/score, address match, global address, product match | $0.0125/call |
-| **Data Enrichment** — AI-powered intelligence (Premium) | Business info, parent company, executives, news, email trust, stock, verification, tech stack, IP/phone profiles | $0.3125/call |
+| **Data Enrichment** — AI-powered intelligence (Premium) | Business info, parent company, executives, news, email trust, stock, verification, IP/phone profiles | $0.3125/call |
 | **Data Standardization** — Canonical form normalization | Org, country, country info, city, state abbreviation | $0.0125/call |
 | **Data Enhancement** — Classification & analysis | Entity type, gender, name origin, language ID, translation (to English & any), address parsing | $0.0125/call |
 | **Utility** — Weather, currency, ZIP lookup | Global weather, exchange rates, ZIP code info | $0.0125/call |
 
-All APIs are x402-enabled for native crypto micropayments on Base (USDC).
+## Getting Started
 
-## Quick Start
+### Option 1: Use the Hosted Remote Server (no installation required)
 
-### Prerequisites
+Connect any MCP client that supports remote HTTP servers to:
 
-- Go 1.22+
+```
+https://mcp.interzoid.com/mcp
+```
 
-### Build
+Pass your API key via the `Authorization` header:
+
+```
+Authorization: Bearer your-api-key-here
+```
+
+Get a free API key at [interzoid.com](https://www.interzoid.com/signup) to get started.
+
+### Option 2: Download a Prebuilt Binary (no Go required)
+
+Download the binary for your platform from the [GitHub Releases](https://github.com/interzoid/interzoid-mcp-server/releases) page:
+
+- **Windows:** `interzoid-mcp-server-windows-amd64.exe`
+- **macOS (Apple Silicon):** `interzoid-mcp-server-macos-arm64`
+- **Linux:** `interzoid-mcp-server-linux-amd64`
+
+Then configure your MCP client to run it (see [Client Configuration](#client-configuration) below).
+
+### Option 3: Build from Source
+
+Requires Go 1.21+:
 
 ```bash
 git clone https://github.com/interzoid/interzoid-mcp-server.git
@@ -33,58 +55,42 @@ go mod tidy
 go build -o interzoid-mcp-server .
 ```
 
-### Authentication
+## Authentication
 
-The MCP server supports three authentication methods (in priority order):
+There are three ways to authenticate, depending on how you're using the server:
 
-1. **Authorization header** (remote HTTP transport) — The connecting client sends `Authorization: Bearer <api-key>` when connecting. The MCP server forwards it to the Interzoid API via the `x-api-key` header. This is the standard method for remote/hosted deployments.
+### 1. API Key via Environment Variable (local installations)
 
-2. **Environment variable** (local stdio transport) — Set `INTERZOID_API_KEY` in your MCP client config. This is the standard method for local installations.
-
-3. **x402 micropayments** — When no API key is provided, requests trigger the x402 payment flow. The Interzoid API returns a `402 Payment Required` response with payment requirements, and the calling agent/client handles payment negotiation using USDC on Base.
-
-### Run in x402 Mode (default — for crypto micropayments)
-
-```bash
-./interzoid-mcp-server
-```
-
-When no API key is provided via environment variable or Authorization header, requests trigger the x402 payment flow.
-
-### Run with API Key (local, direct access)
+Set `INTERZOID_API_KEY` in your MCP client config. This is the standard method when running the binary locally.
 
 ```bash
 export INTERZOID_API_KEY="your-api-key-here"
 ./interzoid-mcp-server
 ```
 
-### Run with HTTP Transport (for remote/hosted access)
+### 2. API Key via Authorization Header (remote/hosted server)
 
-```bash
-./interzoid-mcp-server -transport http -port 8080
+When connecting to the hosted server at `https://mcp.interzoid.com/mcp` or any remote deployment, pass your API key in the `Authorization` header:
+
+```
+Authorization: Bearer your-api-key-here
 ```
 
-Remote clients authenticate by passing `Authorization: Bearer <api-key>` in their connection headers.
+The MCP server forwards this to the Interzoid API via the `x-api-key` header.
 
-The MCP endpoint will be available at `http://localhost:8080/mcp`.
+### 3. x402 Crypto Micropayments (no API key needed)
+
+When no API key is provided by either method above, requests trigger the [x402 payment protocol](https://x402.org). The Interzoid API returns a `402 Payment Required` response with payment requirements, and the calling agent/client handles payment negotiation using USDC on Base. No signup or API key is needed — just a compatible wallet.
+
+### Where to Get an API Key
+
+Sign up for a free API key at [interzoid.com/signup](https://www.interzoid.com/signup). Keys work with both the local binary (via environment variable) and the remote server (via Authorization header).
 
 ## Client Configuration
 
 ### Claude Desktop
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
-```json
-{
-  "mcpServers": {
-    "interzoid": {
-      "command": "/path/to/interzoid-mcp-server"
-    }
-  }
-}
-```
-
-Or with an API key for direct access (bypasses x402):
 
 ```json
 {
@@ -120,38 +126,22 @@ Or add to `.claude/settings.json`:
 }
 ```
 
-### Cursor / Windsurf / Other MCP Clients (remote HTTP)
+### Cursor / Windsurf / Other MCP Clients (remote)
 
-Point the client to the StreamableHTTP endpoint:
+Point the client to the hosted server:
 
 ```
-http://your-server:8080/mcp
+https://mcp.interzoid.com/mcp
 ```
 
-### Using via npx (once published to npm)
-
-If you wrap the binary and publish to npm:
-
-```json
-{
-  "mcpServers": {
-    "interzoid": {
-      "command": "npx",
-      "args": ["-y", "@interzoid/mcp-server"],
-      "env": {
-        "INTERZOID_API_KEY": "your-api-key-here"
-      }
-    }
-  }
-}
-```
+Set the Authorization header to `Bearer your-api-key-here`.
 
 ## Example Interactions
 
 Once configured, AI agents can use the tools naturally:
 
 > **User:** "Check if 'IBM' and 'International Business Machines' are the same company"
-> **Agent uses:** `interzoid_company_match_score` with company1="IBM", company2="International Business Machines"
+> **Agent uses:** `interzoid_org_match_score` with org1="IBM", org2="International Business Machines"
 > **Result:** Score: 98
 
 > **User:** "What can you tell me about Anthropic's business?"
@@ -162,9 +152,19 @@ Once configured, AI agents can use the tools naturally:
 > **Agent uses:** `interzoid_translate_to_english` with text="Bonjour le monde"
 > **Result:** Translation: "Hello world"
 
+## Self-Hosting the Remote Server
+
+To host your own remote instance:
+
+```bash
+./interzoid-mcp-server -transport http -port 8080
+```
+
+The MCP endpoint will be available at `http://localhost:8080/mcp`. Place behind Nginx or a load balancer with HTTPS for production use. Ensure `proxy_buffering off` is set in your Nginx config to support SSE streaming.
+
 ## x402 Payment Integration
 
-All Interzoid APIs support the [x402 protocol](https://x402.org) for native crypto micropayments. When accessed through the x402 payment flow:
+All Interzoid APIs support the [x402 protocol](https://x402.org) for native crypto micropayments. When accessed without an API key:
 
 - **Standard APIs:** 12,500 atomic USDC ($0.0125) per call
 - **Premium APIs:** 312,500 atomic USDC ($0.3125) per call
@@ -173,36 +173,16 @@ All Interzoid APIs support the [x402 protocol](https://x402.org) for native cryp
 
 The `.well-known/x402.json` manifest at `https://api.interzoid.com/.well-known/x402.json` provides full machine-readable discovery for x402 clients.
 
-## Publishing & Discovery
-
-To make this server discoverable in the AI ecosystem:
-
-1. **GitHub** — Publish the repo publicly
-2. **mcp.so** — Submit at [mcp.so](https://mcp.so) for MCP directory listing
-3. **mcpservers.org** — Submit at [mcpservers.org](https://mcpservers.org)
-4. **Coinbase Bazaar** — Already listed via x402 payment integration
-5. **npm** — Optional: wrap the binary for `npx` distribution
-6. **Smithery** — Submit at [smithery.ai](https://smithery.ai) for discovery
-
 ## Project Structure
 
 ```
 interzoid-mcp-server/
 ├── main.go        # Entry point, transport selection (stdio/HTTP)
-├── tools.go       # MCP tool registration for all ~30 APIs
+├── tools.go       # MCP tool registration for all 29 APIs
 ├── client.go      # HTTP client for calling api.interzoid.com
 ├── go.mod         # Go module definition
 └── README.md      # This file
 ```
-
-## Adding New APIs
-
-To add a new Interzoid API as an MCP tool:
-
-1. Add a new `s.AddTool(...)` block in `tools.go` within the appropriate category
-2. Use `genericHandler("/your-endpoint", []string{"param1", "param2"})` as the handler
-3. Write a clear description explaining WHEN and WHY an agent should use this tool
-4. Rebuild: `go build -o interzoid-mcp-server .`
 
 ## License
 
