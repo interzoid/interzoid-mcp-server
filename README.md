@@ -33,28 +33,38 @@ go mod tidy
 go build -o interzoid-mcp-server .
 ```
 
+### Authentication
+
+The MCP server supports three authentication methods (in priority order):
+
+1. **Authorization header** (remote HTTP transport) — The connecting client sends `Authorization: Bearer <api-key>` when connecting. The MCP server forwards it to the Interzoid API via the `x-api-key` header. This is the standard method for remote/hosted deployments.
+
+2. **Environment variable** (local stdio transport) — Set `INTERZOID_API_KEY` in your MCP client config. This is the standard method for local installations.
+
+3. **x402 micropayments** — When no API key is provided, requests trigger the x402 payment flow. The Interzoid API returns a `402 Payment Required` response with payment requirements, and the calling agent/client handles payment negotiation using USDC on Base.
+
 ### Run in x402 Mode (default — for crypto micropayments)
 
 ```bash
 ./interzoid-mcp-server
 ```
 
-When `INTERZOID_API_KEY` is **not set**, requests are sent without the `license` parameter, triggering the x402 payment flow. The API returns a `402 Payment Required` response with payment requirements, and the calling agent/client handles the payment negotiation.
+When no API key is provided via environment variable or Authorization header, requests trigger the x402 payment flow.
 
-### Run in API Key Mode (direct access)
+### Run with API Key (local, direct access)
 
 ```bash
 export INTERZOID_API_KEY="your-api-key-here"
 ./interzoid-mcp-server
 ```
 
-When `INTERZOID_API_KEY` **is set**, it's passed as the `license` query parameter for direct authenticated access, bypassing x402.
-
 ### Run with HTTP Transport (for remote/hosted access)
 
 ```bash
 ./interzoid-mcp-server -transport http -port 8080
 ```
+
+Remote clients authenticate by passing `Authorization: Bearer <api-key>` in their connection headers.
 
 The MCP endpoint will be available at `http://localhost:8080/mcp`.
 

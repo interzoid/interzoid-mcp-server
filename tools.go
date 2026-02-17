@@ -29,7 +29,20 @@ import (
 // Total: 29 APIs (gettechstack excluded for now)
 // ============================================================================
 
-func getAPIKey() string {
+// getAPIKey extracts the API key using the following priority:
+//   1. Authorization header from the incoming MCP request (remote HTTP transport)
+//   2. INTERZOID_API_KEY environment variable (local stdio transport)
+//   3. Empty string — triggers x402 payment flow
+func getAPIKey(request mcp.CallToolRequest) string {
+	// Check for Authorization: Bearer <key> header from the connecting client
+	if auth := request.Header.Get("Authorization"); auth != "" {
+		// Strip "Bearer " prefix if present
+		if len(auth) > 7 && (auth[:7] == "Bearer " || auth[:7] == "bearer ") {
+			return auth[7:]
+		}
+		return auth
+	}
+	// Fall back to environment variable
 	return os.Getenv("INTERZOID_API_KEY")
 }
 
@@ -54,7 +67,7 @@ func getArguments(request mcp.CallToolRequest) map[string]interface{} {
 // correct query param names to the API.
 func genericHandler(endpoint string, requiredParams []paramMapping, optionalParams []paramMapping) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		apiKey := getAPIKey()
+		apiKey := getAPIKey(request)
 		args := getArguments(request)
 
 		params := make(map[string]string)

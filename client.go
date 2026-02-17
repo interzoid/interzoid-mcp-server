@@ -18,15 +18,16 @@ var httpClient = &http.Client{Timeout: httpTimeout}
 
 // callInterzoidAPI makes an HTTP GET request to the Interzoid API endpoint.
 //
-// x402 MODE (default):
-//   When INTERZOID_API_KEY is not set, the request is sent WITHOUT the
-//   "license" query parameter. This triggers the x402 payment flow — the
-//   API server responds with 402 Payment Required, and the calling agent
-//   or client is responsible for handling the payment negotiation.
+// Authentication priority (first match wins):
+//   1. API key passed in from the connecting client's Authorization header
+//      (remote HTTP transport — user provides their own key)
+//   2. INTERZOID_API_KEY environment variable (local stdio transport)
+//   3. No key — triggers x402 payment flow
 //
-// API KEY MODE:
-//   When INTERZOID_API_KEY is set, it is passed as the "license" query
-//   parameter for direct authenticated access (bypassing x402).
+// When an API key is available, it is sent as the "x-api-key" header to
+// the Interzoid API (matching the existing API authentication convention).
+// When no key is available, the request is sent without authentication,
+// triggering a 402 Payment Required response for x402 payment negotiation.
 func callInterzoidAPI(apiKey string, endpoint string, params map[string]string) (map[string]interface{}, error) {
 	u, err := url.Parse(interzoidBaseURL + endpoint)
 	if err != nil {
@@ -34,18 +35,23 @@ func callInterzoidAPI(apiKey string, endpoint string, params map[string]string) 
 	}
 
 	q := u.Query()
-
-	// Only include license key if provided — omitting it triggers x402
-	if apiKey != "" {
-		q.Set("license", apiKey)
-	}
-
 	for k, v := range params {
 		q.Set(k, v)
 	}
 	u.RawQuery = q.Encode()
 
-	resp, err := httpClient.Get(u.String())
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Send API key via x-api-key header (matching Interzoid API convention)
+	// Omitting it triggers the x402 payment flow
+	if apiKey != "" {
+		req.Header.Set("x-api-key", apiKey)
+	}
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("API request failed: %w", err)
 	}
