@@ -4,7 +4,7 @@ An MCP (Model Context Protocol) server that exposes [Interzoid](https://interzoi
 
 ## What This Does
 
-This MCP server makes 29 Interzoid APIs discoverable and callable by any MCP-compatible client including Claude Desktop, Claude Code, Cursor, Windsurf, and other AI tools. AI agents can discover the available data quality tools and invoke them as needed during conversations and workflows.
+This MCP server makes 29 Interzoid APIs discoverable and callable by any MCP-compatible client including Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, and other AI tools. AI agents can discover the available data quality tools and invoke them as needed during conversations and workflows.
 
 ### Available APIs (29 Tools)
 
@@ -32,7 +32,7 @@ Pass your API key via the `Authorization` header:
 Authorization: Bearer your-api-key-here
 ```
 
-Get a free API key at [interzoid.com](https://www.interzoid.com/signup) to get started.
+Get a free API key at [interzoid.com](https://www.interzoid.com/register-api-account) to get started.
 
 ### Option 2: Download a Prebuilt Binary (no Go required)
 
@@ -78,28 +78,30 @@ Authorization: Bearer your-api-key-here
 
 The MCP server forwards this to the Interzoid API via the `x-api-key` header.
 
-### 3. x402 Crypto Micropayments (no API key needed)
+### 3. x402 USDC Micropayments (no API key needed)
 
 When no API key is provided by either method above, requests trigger the [x402 payment protocol](https://x402.org). The Interzoid API returns a `402 Payment Required` response with payment requirements, and the calling agent/client handles payment negotiation using USDC on Base. No signup or API key is needed — just a compatible wallet.
 
 ### Where to Get an API Key
 
-Sign up for a free API key at [interzoid.com/signup](https://www.interzoid.com/signup). Keys work with both the local binary (via environment variable) and the remote server (via Authorization header).
+Sign up for a free API key at [interzoid.com/register-api-account](https://www.interzoid.com/register-api-account). Keys work with both the local binary (via environment variable) and the remote server (via Authorization header).
 
 ## Client Configuration
 
-### Claude Desktop
+### Cursor
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+**One-click install:** [Click here to install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=Interzoid&config=eyJ1cmwiOiJodHRwczovL21jcC5pbnRlcnpvaWQuY29tL21jcCJ9)
+
+[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=Interzoid&config=eyJ1cmwiOiJodHRwczovL21jcC5pbnRlcnpvaWQuY29tL21jcCJ9)
+
+Or manually add to `.cursor/mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "interzoid": {
-      "command": "/path/to/interzoid-mcp-server",
-      "env": {
-        "INTERZOID_API_KEY": "your-api-key-here"
-      }
+      "url": "https://mcp.interzoid.com/mcp",
+      "type": "http"
     }
   }
 }
@@ -107,11 +109,48 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 
 ### Claude Code
 
+Run in your terminal:
+
 ```bash
-claude mcp add interzoid -- /path/to/interzoid-mcp-server
+claude mcp add --transport http interzoid https://mcp.interzoid.com/mcp
 ```
 
-Or add to `.claude/settings.json`:
+Then use `/mcp` in Claude Code to verify the connection.
+
+### VS Code
+
+Open the Command Palette (`Ctrl+Shift+P` / `⌘+Shift+P`), select **MCP: Open User Configuration**, and add:
+
+```json
+{
+  "servers": {
+    "interzoid": {
+      "url": "https://mcp.interzoid.com/mcp",
+      "type": "http"
+    }
+  }
+}
+```
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "interzoid": {
+      "serverUrl": "https://mcp.interzoid.com/mcp"
+    }
+  }
+}
+```
+
+### Claude Desktop
+
+**Remote server (Pro/Max/Team/Enterprise):** Go to **Settings > Connectors > Add Custom Connector** and enter `https://mcp.interzoid.com/mcp`.
+
+**Local binary:** Add to `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/`, Windows: `%APPDATA%\Claude\`):
 
 ```json
 {
@@ -126,15 +165,15 @@ Or add to `.claude/settings.json`:
 }
 ```
 
-### Cursor / Windsurf / Other MCP Clients (remote)
+### Other MCP Clients
 
-Point the client to the hosted server:
+Point any MCP-compatible client to the hosted remote server:
 
 ```
 https://mcp.interzoid.com/mcp
 ```
 
-Set the Authorization header to `Bearer your-api-key-here`.
+The server supports Streamable HTTP transport. Pass your API key via the `Authorization: Bearer your-api-key` header, or use x402 USDC micropayments with no API key needed.
 
 ## Example Interactions
 
@@ -164,7 +203,7 @@ The MCP endpoint will be available at `http://localhost:8080/mcp`. Place behind 
 
 ## x402 Payment Integration
 
-All Interzoid APIs support the [x402 protocol](https://x402.org) for native crypto micropayments. When accessed without an API key:
+All Interzoid APIs support the [x402 protocol](https://x402.org) for native USDC micropayments. When accessed without an API key:
 
 - **Standard APIs:** 12,500 atomic USDC ($0.0125) per call
 - **Premium APIs:** 312,500 atomic USDC ($0.3125) per call
