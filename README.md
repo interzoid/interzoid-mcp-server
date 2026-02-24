@@ -90,9 +90,11 @@ Sign up for a free API key at [interzoid.com/register-api-account](https://www.i
 
 ### Cursor
 
-**One-click install:** [Click here to install in Cursor](cursor://anysphere.cursor-deeplink/mcp/install?name=Interzoid&config=eyJ1cmwiOiJodHRwczovL21jcC5pbnRlcnpvaWQuY29tL21jcCJ9)
+**One-click install:** Use the install button on the [Interzoid MCP Server page](https://www.interzoid.com/mcp-server#cursor), or copy this deep link into your browser:
 
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=Interzoid&config=eyJ1cmwiOiJodHRwczovL21jcC5pbnRlcnpvaWQuY29tL21jcCJ9)
+```
+cursor://anysphere.cursor-deeplink/mcp/install?name=Interzoid&config=eyJ1cmwiOiJodHRwczovL21jcC5pbnRlcnpvaWQuY29tL21jcCJ9
+```
 
 Or manually add to `.cursor/mcp.json`:
 
