@@ -4,17 +4,24 @@ An MCP (Model Context Protocol) server that exposes [Interzoid](https://interzoi
 
 ## What This Does
 
-This MCP server makes 29 Interzoid APIs discoverable and callable by any MCP-compatible client including Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, and other AI tools. AI agents can discover the available data quality tools and invoke them as needed during conversations and workflows.
+This MCP server makes 58 Interzoid APIs discoverable and callable by any MCP-compatible client including Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, and other AI tools. AI agents can discover the available data quality and enrichment tools and invoke them as needed during conversations and workflows.
 
-### Available APIs (29 Tools)
+### Available APIs (58 Tools)
 
-| Category | Tools | Price (USDC) |
+| Category | Tools | Price (x402 USDC) |
 |---|---|---|
-| **Data Matching** — Similarity key generation & scoring | Company match, org match score, name match/score, address match, global address, product match | $0.0125/call |
-| **Data Enrichment** — AI-powered intelligence (Premium) | Business info, parent company, executives, news, email trust, stock, verification, IP/phone profiles | $0.3125/call |
-| **Data Standardization** — Canonical form normalization | Org, country, country info, city, state abbreviation | $0.0125/call |
-| **Data Enhancement** — Classification & analysis | Entity type, gender, name origin, language ID, translation (to English & any), address parsing | $0.0125/call |
-| **Utility** — Weather, currency, ZIP lookup | Global weather, exchange rates, ZIP code info | $0.0125/call |
+| **Data Matching** (10) | Similarity keys and match scores for company names, individual names, US and global addresses, products, plus combined keys (company+address, name+address, company+name) for high-precision deduplication | $0.01/call |
+| **Company Intelligence** (13) | Business info, parent company, executives, recent news, verification, industry codes (NAICS/SIC), competitor analysis, buying signals, private company deal intel, ESG profile, government contracts, facilities profile, tech stack | $0.25/call |
+| **Contact & Identity** (3) | Email trust score, IP address profile, phone number profile | $0.25/call |
+| **Financial & Market** (2) | Stock analysis by ticker, municipal issuer profile | $0.25/call |
+| **Property & Location** (3) | Commercial building profile, property transaction history, nearest coffee shops | $0.25/call |
+| **Tax & Regulatory** (4) | US sales & use tax rates, IRS per diem rates, European VAT rates, customs duty rates by HS code | $0.25-$0.35/call |
+| **Research & Lookup** (2) | University and college info, product recall information | $0.25/call |
+| **X / Twitter** (3) | Find X handle for any entity, profile snapshot by handle, last three posts by handle | $0.05/call |
+| **Custom & Identity Resolution** (2) | AI custom self-defined data enrichment (you define the output fields), official legal organization name resolution for KYB and compliance | Premium |
+| **Data Standardization** (5) | Organization, country, country info, city, state abbreviation | $0.01/call |
+| **Data Enhancement** (7) | Entity type, gender, name origin, language ID, translation (to English & any language), address parsing | $0.01/call |
+| **Utility** (4) | Global weather, currency exchange rates, ZIP code info, global page latency measurement | $0.01/call |
 
 ## Getting Started
 
@@ -46,7 +53,7 @@ Then configure your MCP client to run it (see [Client Configuration](#client-con
 
 ### Option 3: Build from Source
 
-Requires Go 1.21+:
+Requires Go 1.23+:
 
 ```bash
 git clone https://github.com/interzoid/interzoid-mcp-server.git
@@ -80,7 +87,7 @@ The MCP server forwards this to the Interzoid API via the `x-api-key` header.
 
 ### 3. x402 USDC Micropayments (no API key needed)
 
-When no API key is provided by either method above, requests trigger the [x402 payment protocol](https://x402.org). The Interzoid API returns a `402 Payment Required` response with payment requirements, and the calling agent/client handles payment negotiation using USDC on Base. No signup or API key is needed — just a compatible wallet.
+When no API key is provided by either method above, requests trigger the [x402 payment protocol](https://x402.org). The Interzoid API returns a `402 Payment Required` response with payment requirements, and the calling agent/client handles payment negotiation using USDC on Base. No signup or API key is needed, just a compatible wallet.
 
 ### Where to Get an API Key
 
@@ -179,19 +186,27 @@ The server supports Streamable HTTP transport. Pass your API key via the `Author
 
 ## Example Interactions
 
-Once configured, AI agents can use the tools naturally:
+Once configured, AI agents can chain the tools into complete workflows:
 
-> **User:** "Check if 'IBM' and 'International Business Machines' are the same company"
-> **Agent uses:** `interzoid_org_match_score` with org1="IBM", org2="International Business Machines"
-> **Result:** Score: 98
+> **User:** "Here are 40 customer records. Find the duplicates even where names are spelled differently."
+> **Agent uses:** `interzoid_company_match_advanced` on each record, then groups rows sharing a similarity key
+> **Result:** A duplicate report with 'IBM', 'I.B.M.', and 'International Business Machines' correctly clustered
 
-> **User:** "What can you tell me about Anthropic's business?"
-> **Agent uses:** `interzoid_business_info` with lookup="Anthropic"
-> **Result:** Headquarters, revenue, employees, industry, description
+> **User:** "Build me a briefing on Databricks before my call tomorrow."
+> **Agent uses:** `interzoid_business_info`, `interzoid_buying_signals`, `interzoid_competitor_analysis`, `interzoid_private_company_deal_intel`
+> **Result:** Revenue, funding history, competitors, and current buying signals in one briefing
 
-> **User:** "Translate 'Bonjour le monde' to English"
-> **Agent uses:** `interzoid_translate_to_english` with text="Bonjour le monde"
-> **Result:** Translation: "Hello world"
+> **User:** "Is 'Mitsubishi UFJ' a legitimate entity? Get me the official legal name and registry details."
+> **Agent uses:** `interzoid_official_name`, `interzoid_company_verification`
+> **Result:** Official legal name, registry identifier, incorporation country, verification score, and an authoritative source URL
+
+> **User:** "What's the combined sales tax rate at our new Beverly Hills store? And the duty rate for importing laptops into Germany?"
+> **Agent uses:** `interzoid_sales_use_tax_rates`, `interzoid_customs_duty_rates` (HS code 8471.30)
+> **Result:** Rate breakdowns by jurisdiction, plus MFN duty rates and import VAT
+
+> **User:** "For each city on this list, get me life expectancy, flu vaccination coverage, and diabetes rate."
+> **Agent uses:** `interzoid_custom_data` with topic "healthcare data by city" and self-defined output fields
+> **Result:** Structured JSON with exactly the fields you asked for, for any subject domain
 
 ## Self-Hosting the Remote Server
 
@@ -205,10 +220,12 @@ The MCP endpoint will be available at `http://localhost:8080/mcp`. Place behind 
 
 ## x402 Payment Integration
 
-All Interzoid APIs support the [x402 protocol](https://x402.org) for native USDC micropayments. When accessed without an API key:
+Interzoid APIs support the [x402 protocol](https://x402.org) for native USDC micropayments. When accessed without an API key:
 
-- **Standard APIs:** 12,500 atomic USDC ($0.0125) per call
-- **Premium APIs:** 312,500 atomic USDC ($0.3125) per call
+- **Standard APIs:** 10,000 atomic USDC ($0.01) per call
+- **X/Twitter APIs:** 50,000 atomic USDC ($0.05) per call
+- **Premium APIs:** 250,000 atomic USDC ($0.25) per call
+- **Customs Duty API:** 350,000 atomic USDC ($0.35) per call
 - **Network:** Base (EIP-155:8453)
 - **Asset:** USDC (0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
 
@@ -219,7 +236,7 @@ The `.well-known/x402.json` manifest at `https://api.interzoid.com/.well-known/x
 ```
 interzoid-mcp-server/
 ├── main.go        # Entry point, transport selection (stdio/HTTP)
-├── tools.go       # MCP tool registration for all 29 APIs
+├── tools.go       # MCP tool registration for all 58 APIs
 ├── client.go      # HTTP client for calling api.interzoid.com
 ├── go.mod         # Go module definition
 └── README.md      # This file

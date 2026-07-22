@@ -19,10 +19,10 @@ var httpClient = &http.Client{Timeout: httpTimeout}
 // callInterzoidAPI makes an HTTP GET request to the Interzoid API endpoint.
 //
 // Authentication priority (first match wins):
-//   1. API key passed in from the connecting client's Authorization header
-//      (remote HTTP transport — user provides their own key)
-//   2. INTERZOID_API_KEY environment variable (local stdio transport)
-//   3. No key — triggers x402 payment flow
+//  1. API key passed in from the connecting client's Authorization header
+//     (remote HTTP transport — user provides their own key)
+//  2. INTERZOID_API_KEY environment variable (local stdio transport)
+//  3. No key — triggers x402 payment flow
 //
 // When an API key is available, it is sent as the "x-api-key" header to
 // the Interzoid API (matching the existing API authentication convention).
@@ -71,7 +71,7 @@ func callInterzoidAPI(apiKey string, endpoint string, params map[string]string) 
 		}
 		return map[string]interface{}{
 			"status":              "payment_required",
-			"x402":               true,
+			"x402":                true,
 			"paymentRequirements": paymentReq,
 		}, nil
 	}

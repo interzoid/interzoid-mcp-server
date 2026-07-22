@@ -11,7 +11,7 @@ import (
 
 const (
 	serverName    = "Interzoid Data Quality APIs"
-	serverVersion = "1.0.0"
+	serverVersion = "1.1.0"
 )
 
 func main() {
