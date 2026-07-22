@@ -4,7 +4,7 @@ An MCP (Model Context Protocol) server that exposes [Interzoid](https://interzoi
 
 ## What This Does
 
-This MCP server makes 58 Interzoid APIs discoverable and callable by any MCP-compatible client including Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, and other AI tools. AI agents can discover the available data quality and enrichment tools and invoke them as needed during conversations and workflows.
+This MCP server makes 58 Interzoid APIs discoverable and callable by any MCP-compatible client including Claude Desktop, Claude Code, Cursor, OpenAI Codex, Gemini CLI, VS Code, Windsurf, and other AI tools. AI agents can discover the available data quality and enrichment tools and invoke them as needed during conversations and workflows.
 
 ### Available APIs (58 Tools)
 
@@ -18,7 +18,7 @@ This MCP server makes 58 Interzoid APIs discoverable and callable by any MCP-com
 | **Tax & Regulatory** (4) | US sales & use tax rates, IRS per diem rates, European VAT rates, customs duty rates by HS code | $0.25-$0.35/call |
 | **Research & Lookup** (2) | University and college info, product recall information | $0.25/call |
 | **X / Twitter** (3) | Find X handle for any entity, profile snapshot by handle, last three posts by handle | $0.05/call |
-| **Custom & Identity Resolution** (2) | AI custom self-defined data enrichment (you define the output fields), official legal organization name resolution for KYB and compliance | Premium |
+| **Custom & Identity Resolution** (2) | AI custom self-defined data enrichment (you define the output fields), official legal organization name resolution for KYB and compliance | $0.25/call |
 | **Data Standardization** (5) | Organization, country, country info, city, state abbreviation | $0.01/call |
 | **Data Enhancement** (7) | Entity type, gender, name origin, language ID, translation (to English & any language), address parsing | $0.01/call |
 | **Utility** (4) | Global weather, currency exchange rates, ZIP code info, global page latency measurement | $0.01/call |
@@ -103,28 +103,75 @@ Sign up for a free API key at [interzoid.com/register-api-account](https://www.i
 cursor://anysphere.cursor-deeplink/mcp/install?name=Interzoid&config=eyJ1cmwiOiJodHRwczovL21jcC5pbnRlcnpvaWQuY29tL21jcCJ9
 ```
 
-Or manually add to `.cursor/mcp.json`:
+Or manually add to `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
 
 ```json
 {
   "mcpServers": {
     "interzoid": {
       "url": "https://mcp.interzoid.com/mcp",
-      "type": "http"
+      "headers": {
+        "Authorization": "Bearer your-api-key-here"
+      }
     }
   }
 }
 ```
+
+The `headers` block is optional. Omit it to use x402 USDC micropayments instead of an API key.
 
 ### Claude Code
 
 Run in your terminal:
 
 ```bash
-claude mcp add --transport http interzoid https://mcp.interzoid.com/mcp
+claude mcp add --transport http interzoid https://mcp.interzoid.com/mcp --header "Authorization: Bearer your-api-key-here"
 ```
 
-Then use `/mcp` in Claude Code to verify the connection.
+The `--header` flag is optional. Omit it to use x402 USDC micropayments instead of an API key. Then use `/mcp` in Claude Code to verify the connection.
+
+### OpenAI Codex
+
+Run in your terminal (works for Codex CLI, the IDE extension, and the Codex app, which share the same configuration):
+
+```bash
+codex mcp add interzoid --url https://mcp.interzoid.com/mcp --bearer-token-env-var INTERZOID_API_KEY
+```
+
+Then set the `INTERZOID_API_KEY` environment variable to your API key. Or edit `~/.codex/config.toml` directly:
+
+```toml
+[mcp_servers.interzoid]
+url = "https://mcp.interzoid.com/mcp"
+bearer_token_env_var = "INTERZOID_API_KEY"
+```
+
+Run `/mcp` inside Codex to verify the server is connected.
+
+### Gemini CLI
+
+Run in your terminal:
+
+```bash
+gemini mcp add -t http interzoid https://mcp.interzoid.com/mcp
+```
+
+Or manually add to `~/.gemini/settings.json` (global) or `.gemini/settings.json` (project):
+
+```json
+{
+  "mcpServers": {
+    "interzoid": {
+      "httpUrl": "https://mcp.interzoid.com/mcp",
+      "headers": {
+        "Authorization": "Bearer your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+Run `/mcp` inside Gemini CLI to verify the connection.
 
 ### VS Code
 
