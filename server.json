@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.interzoid/mcp-server",
+  "description": "58 AI data quality, data matching, and data enrichment APIs for better data ROI",
+  "repository": {
+    "url": "https://github.com/interzoid/interzoid-mcp-server",
+    "source": "github"
+  },
+  "version": "1.1.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.interzoid.com/mcp",
+      "headers": [
+        {
+          "description": "Interzoid API key, sent as: Bearer your-api-key. Optional - omit to pay per call via x402 USDC micropayments.",
+          "isRequired": false,
+          "isSecret": true,
+          "name": "Authorization"
+        }
+      ]
+    }
+  ]
+}
