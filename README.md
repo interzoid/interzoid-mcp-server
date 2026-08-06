@@ -1,5 +1,7 @@
 # Interzoid MCP Server
 
+[![MCP Queen operational grade](https://mcpqueen.com/badge/com.interzoid/mcp-server.svg)](https://mcpqueen.com/s/com.interzoid/mcp-server)
+
 An MCP (Model Context Protocol) server that exposes [Interzoid](https://interzoid.com)'s AI-powered data quality, matching, enrichment, and standardization APIs to AI agents and LLM applications.
 
 ## What This Does
